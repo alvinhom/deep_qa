@@ -1,10 +1,10 @@
 import gzip
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 import numpy
 
-from ...common.params import assert_params_empty, get_choice_with_default
+from ...common.params import Params
 from .nearest_neighbor_algorithms import nearest_neighbor_algorithms
 from .retrieval_encoders import retrieval_encoders
 
@@ -41,19 +41,21 @@ class VectorBasedRetrieval:
     neighbor algorithm.  Then you can retrieve background sentences given a query string with
     ``retrieval.get_nearest_neighbors``.
     """
-    def __init__(self, params: Dict[str, Any]):
+    def __init__(self, params: Params):
         self.serialization_prefix = params.pop('serialization_prefix', 'retrieval')
 
         encoder_params = params.pop('encoder', {})
-        encoder_choice = get_choice_with_default(encoder_params, 'type', list(retrieval_encoders.keys()))
+        encoder_choice = encoder_params.pop_choice('type', list(retrieval_encoders.keys()),
+                                                   default_to_first_choice=True)
         self.encoder = retrieval_encoders[encoder_choice](encoder_params)
 
         nearest_neighbors_params = params.pop('nearest_neighbors', {})
-        nearest_neighbors_choice = get_choice_with_default(nearest_neighbors_params, 'type',
-                                                           list(nearest_neighbor_algorithms.keys()))
+        nearest_neighbors_choice = \
+            nearest_neighbors_params.pop_choice('type', list(nearest_neighbor_algorithms.keys()),
+                                                default_to_first_choice=True)
         self.nearest_neighbors = nearest_neighbor_algorithms[nearest_neighbors_choice](nearest_neighbors_params)
 
-        assert_params_empty(params, "VectorBasedRetrieval")
+        params.assert_empty("VectorBasedRetrieval")
 
         self.background_sentences = []
 

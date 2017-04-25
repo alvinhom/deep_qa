@@ -6,7 +6,7 @@ from keras import initializers, activations
 from keras.regularizers import l1_l2
 from overrides import overrides
 
-from ...common.params import get_choice_with_default
+from ...common.params import pop_choice
 from ...tensors.backend import switch, apply_feed_forward
 from ...tensors.similarity_functions import similarity_functions
 from ..masked_layer import MaskedLayer
@@ -85,19 +85,20 @@ class ThresholdTupleMatcher(MaskedLayer):
         self.hidden_layer_init = initialization
         self.hidden_layer_activation = hidden_layer_activation
         self.final_activation = final_activation
+        self.similarity_function_params = deepcopy(similarity_function)
+        super(ThresholdTupleMatcher, self).__init__(**kwargs)
+
+        if similarity_function is None:
+            similarity_function = {}
+        sim_function_choice = pop_choice(similarity_function, 'type',
+                                         list(similarity_functions.keys()),
+                                         default_to_first_choice=True)
+        similarity_function['name'] = self.name + '_similarity_function'
+        self.similarity_function = similarity_functions[sim_function_choice](**similarity_function)
         self.hidden_layer_weights = []
         self.score_layer = None
         # This thresholded matcher includes a similarity threshold which is learned during training.
         self.similarity_threshold = None
-        super(ThresholdTupleMatcher, self).__init__(**kwargs)
-        self.similarity_function_params = deepcopy(similarity_function)
-        if similarity_function is None:
-            similarity_function = {}
-        sim_function_choice = get_choice_with_default(similarity_function,
-                                                      'type',
-                                                      list(similarity_functions.keys()))
-        similarity_function['name'] = self.name + '_similarity_function'
-        self.similarity_function = similarity_functions[sim_function_choice](**similarity_function)
 
     def get_config(self):
         base_config = super(ThresholdTupleMatcher, self).get_config()
@@ -186,9 +187,6 @@ class ThresholdTupleMatcher(MaskedLayer):
         # shape: (batch size, num_slots, num_slot_words_tuple1, num_slot_words_tuple2)
         # TODO(becky): this isn't actually differentiable, is it?  fix?? don't care??
         threshold = self.similarity_threshold
-        if K.backend() == 'theano':
-            # Theano doesn't want to automatically broadcast the >=, so we'll do a tile.
-            threshold = K.tile(self.similarity_threshold, [1, 1, num_slot_words_t1, num_slot_words_t2])
         tuple_words_overlap = K.cast(tuple_word_similarities >= threshold, "float32")
 
         # Exclude padded/masked elements from counting.

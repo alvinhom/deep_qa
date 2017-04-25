@@ -4,8 +4,8 @@ from typing import Any, Dict
 from keras import backend as K
 from overrides import overrides
 
+from ...common.params import pop_choice
 from ..masked_layer import MaskedLayer
-from ...common.params import get_choice_with_default
 from ...tensors.masked_operations import masked_softmax
 from ...tensors.similarity_functions import similarity_functions
 
@@ -43,9 +43,9 @@ class Attention(MaskedLayer):
         self.similarity_function_params = deepcopy(similarity_function)
         if similarity_function is None:
             similarity_function = {}
-        sim_function_choice = get_choice_with_default(similarity_function,
-                                                      'type',
-                                                      list(similarity_functions.keys()))
+        sim_function_choice = pop_choice(similarity_function, 'type',
+                                         list(similarity_functions.keys()),
+                                         default_to_first_choice=True)
         similarity_function['name'] = self.name + '_similarity_function'
         self.similarity_function = similarity_functions[sim_function_choice](**similarity_function)
 

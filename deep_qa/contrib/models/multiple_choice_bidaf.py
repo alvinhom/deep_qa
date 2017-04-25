@@ -1,11 +1,11 @@
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Dict
 
-from keras import backend as K
 from keras.layers import Input
 from overrides import overrides
 
 from ...common.models import get_submodel
+from ...common.params import Params
 from ...data.instances.reading_comprehension import McQuestionPassageInstance
 from ...layers.attention import Attention
 from ...layers.backend import Envelope
@@ -83,7 +83,7 @@ class MultipleChoiceBidaf(TextTrainer):
     until such time as I get the test to actually pass.
     """
     # pylint: disable=protected-access
-    def __init__(self, params: Dict[str, Any]):
+    def __init__(self, params: Params):
         bidaf_params = params.pop('bidaf_params')
         params['tokenizer'] = deepcopy(bidaf_params.get('tokenizer', {}))
         self._bidaf_model = BidirectionalAttentionFlow(bidaf_params)
@@ -92,13 +92,6 @@ class MultipleChoiceBidaf(TextTrainer):
         self.num_options = params.pop('num_options', None)
         self.num_option_words = params.pop('num_option_words', None)
         self.similarity_function_params = params.pop('similarity_function', {'type': 'bilinear'})
-        if K.backend() == 'theano':
-            # This is a total hack.  Sorry.  But there's some crazy error in using the loaded BiDAF
-            # model in theano that's related to K.in_train_phase(), which is only relevant for
-            # dropout.  We're not using dropout in the models we're learning here, so we just turn
-            # it off to avoid the crazy theano error.  TODO(matt): It might make sense to turn off
-            # dropout in BiDAF during training for tensorflow, too.
-            K.set_learning_phase(0)
         super(MultipleChoiceBidaf, self).__init__(params)
         self.data_indexer = self._bidaf_model.data_indexer
         # We need to not add any more words to the vocabulary, or the model will crash, because
@@ -167,7 +160,7 @@ class MultipleChoiceBidaf(TextTrainer):
         option_encoder = EncoderWrapper(passage_encoder)
         encoded_passage = passage_encoder(weighted_passage)
         encoded_options = option_encoder(embedded_options)
-        attention_layer = Attention(deepcopy(self.similarity_function_params))
+        attention_layer = Attention(**deepcopy(self.similarity_function_params).as_dict())
         option_scores = attention_layer([encoded_passage, encoded_options])
 
         return DeepQaModel(inputs=[question_input, passage_input, options_input],

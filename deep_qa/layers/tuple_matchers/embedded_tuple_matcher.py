@@ -1,9 +1,9 @@
 from collections import OrderedDict
 from typing import Any, Dict
 
+from ...common.params import pop_choice
 from ..wrappers.time_distributed_with_mask import TimeDistributedWithMask
 from .threshold_tuple_matcher import ThresholdTupleMatcher
-from ...common.params import get_choice_with_default
 
 
 class EmbeddedTupleMatcher:
@@ -27,9 +27,9 @@ class EmbeddedTupleMatcher:
         self.text_trainer = text_trainer
         if tuple_matcher_params is None:
             tuple_matcher_params = {}
-        tuple_matcher_choice = get_choice_with_default(tuple_matcher_params,
-                                                       "embedded_matcher_type",
-                                                       list(embedded_tuple_matchers.keys()))
+        tuple_matcher_choice = pop_choice(tuple_matcher_params, "embedded_matcher_type",
+                                          list(embedded_tuple_matchers.keys()),
+                                          default_to_first_choice=True)
         self.tuple_matcher = embedded_tuple_matchers[tuple_matcher_choice](**tuple_matcher_params)
 
     def __call__(self, inputs):

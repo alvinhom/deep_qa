@@ -1,12 +1,13 @@
-from typing import Dict, Any, List
+from typing import Dict, List
 
 from overrides import overrides
 
 from keras.layers import Input
 
-from ...data.dataset import TextDataset
-from ...data.instances.multiple_choice_qa.question_answer_instance import QuestionAnswerInstance
-from ...data.instances.text_classification.tuple_instance import TupleInstance
+from ...common.params import Params
+from ...data.instances.multiple_choice_qa import QuestionAnswerInstance
+from ...data.instances.text_classification import TupleInstance
+from ...data.instances.wrappers import read_background_from_file
 from ...layers.entailment_models import MultipleChoiceTupleEntailment
 from ...layers.wrappers import EncoderWrapper
 
@@ -20,7 +21,7 @@ class MultipleChoiceTupleEntailmentModel(TextTrainer):
     uses a tuple alignment entailment model to obtain a probability distribution over the answer options
     based on how well they align with the background tuples, given the question text.
     '''
-    def __init__(self, params: Dict[str, Any]):
+    def __init__(self, params: Params):
         self.entailment_model_params = params.pop('entailment_model', {})
         self.max_answer_length = params.pop('max_answer_length', None)
         self.max_knowledge_length = params.pop('max_knowledge_length', None)
@@ -42,7 +43,7 @@ class MultipleChoiceTupleEntailmentModel(TextTrainer):
     @overrides
     def load_dataset_from_files(self, files: List[str]):
         dataset = super(MultipleChoiceTupleEntailmentModel, self).load_dataset_from_files(files)
-        return TextDataset.read_background_from_file(dataset, files[1], self._background_instance_type())
+        return read_background_from_file(dataset, files[1], self._background_instance_type())
 
     @classmethod
     @overrides

@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from ...layers.wrappers.encoder_wrapper import EncoderWrapper
 from ...layers.wrappers.time_distributed_with_mask import TimeDistributedWithMask
-from ...common.params import get_choice_with_default
+from ...common.params import pop_choice
 from .slot_similarity_tuple_matcher import SlotSimilarityTupleMatcher
 
 
@@ -25,13 +25,13 @@ class EncodedTupleMatcher:
         We only read the "type" key here, which indexes a class in ``encoded_tuple_matchers``, and
         then pass the rest of the parameters on to that class as ``kwargs``.
     """
-    def __init__(self, text_trainer, tuple_matcher_params: Dict[str, Any]):
+    def __init__(self, text_trainer, tuple_matcher_params: Dict[str, Any]=None):
         self.text_trainer = text_trainer
         if tuple_matcher_params is None:
             tuple_matcher_params = {}
-        tuple_matcher_choice = get_choice_with_default(tuple_matcher_params,
-                                                       "encoded_matcher_type",
-                                                       list(encoded_tuple_matchers.keys()))
+        tuple_matcher_choice = pop_choice(tuple_matcher_params, "encoded_matcher_type",
+                                          list(encoded_tuple_matchers.keys()),
+                                          default_to_first_choice=True)
         self.tuple_matcher = encoded_tuple_matchers[tuple_matcher_choice](**tuple_matcher_params)
 
     def __call__(self, inputs):

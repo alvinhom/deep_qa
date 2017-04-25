@@ -1,17 +1,15 @@
 # pylint: disable=no-self-use,invalid-name
 import keras.backend as K
-
+import tensorflow as tf
 from deep_qa.models.memory_networks import MemoryNetwork
+from deep_qa.common.params import Params
 from ...common.test_case import DeepQaTestCase
-from ...common.test_markers import requires_tensorflow
 
-
-@requires_tensorflow
 class TestAdaptiveMemoryNetwork(DeepQaTestCase):
     # pylint: disable=protected-access
     def test_train_does_not_crash(self):
         self.write_memory_network_files()
-        args = {'recurrence_mode': {'type': 'adaptive'}, 'knowledge_selector': {'type': 'parameterized'}}
+        args = Params({'recurrence_mode': {'type': 'adaptive'}, 'knowledge_selector': {'type': 'parameterized'}})
         model = self.get_model(MemoryNetwork, args)
         model.train()
 
@@ -24,15 +22,14 @@ class TestAdaptiveMemoryNetwork(DeepQaTestCase):
         # mixes in some tensorflow, which does not have a "build" equivalent
         # (in that it will happily train a variable which is in a layer which
         # hasn't been built) we check this.
-        import tensorflow as tf
         # Create a new tf session to avoid variables created in other tests affecting this.
         K.clear_session()
         # Add in a layer which is within the adaptive memory step which actually has
         # parameters.
-        args = {
+        args = Params({
                 'recurrence_mode': {'type': 'adaptive'},
                 'knowledge_selector': {'type': 'parameterized'}
-        }
+        })
         solver = self.get_model(MemoryNetwork, args)
         solver.training_dataset = solver.load_dataset_from_files(solver.train_files)
         solver.set_model_state_from_dataset(solver.training_dataset)
