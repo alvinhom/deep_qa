@@ -359,6 +359,12 @@ class Trainer:
         inputs, _ = self.create_data_arrays(dataset)
         return self.model.predict(inputs)
 
+    def score_text_dataset(self, dataset: Dataset):
+        indexing_kwargs = self._dataset_indexing_kwargs()
+        indexed_dataset = dataset.to_indexed_dataset(**indexing_kwargs)
+        inputs, _ = self.create_data_arrays(indexed_dataset)
+        return self.model.predict(inputs)
+
     def load_model(self, epoch: int=None):
         """
         Loads a serialized model, using the ``model_serialization_prefix`` that was passed to the
