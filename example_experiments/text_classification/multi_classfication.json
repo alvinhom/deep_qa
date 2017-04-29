@@ -1,0 +1,28 @@
+{
+    "model_class": "MultiClassificationModel",
+    "model_serialization_prefix": "/Users/ahom/Downloads/dev/nlp/models/multi_classification_test_v2/",
+    "encoder": {
+        "word": {
+            "type": "bi_gru",
+            "units": 64
+        }
+    },
+    "num_classes": 29,
+    "tokenizer": {
+      "type": "words and characters"
+    },
+    "pretrained_embeddings_file": "/Users/ahom/Downloads/dev/nlp/data/glove.6B.100d.txt.gz",
+    "project_embeddings": true,
+    "fine_tune_embeddings": false,
+    "embedding_dropout": 0.2,
+    #"use_data_generator": true,
+    #"use_dynamic_padding": true,
+    "patience": 3,
+    "embedding_dim": {"words": 100, "characters": 8},
+    "num_epochs": 20,
+    "optimizer": {
+      "type": "adam"
+    },
+    "validation_files": ["/Users/ahom/Downloads/dev/nlp/data/classification_dev.tsv"],
+    "train_files": ["/Users/ahom/Downloads/dev/nlp/data/classification_train.tsv"]
+}
