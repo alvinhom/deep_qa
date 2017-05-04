@@ -2,6 +2,14 @@
 [![Documentation Status](https://readthedocs.org/projects/deep-qa/badge/?version=latest)](http://deep-qa.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/allenai/deep_qa/branch/master/graph/badge.svg)](https://codecov.io/gh/allenai/deep_qa)
 
+# WARNING
+
+This is unreleased code!  We're at the pre-alpha stage, things could change, and there are still
+a lot of rough edges.  This grew out of some research code, and we think it'll be pretty useful
+generally, but we're still working on making it easily usable by people outside of our group.  Feel
+free to submit issues for problems that arise so that we're aware of them, but we're not to the
+point of having a supported release yet. 
+
 # DeepQA
 
 DeepQA is a library for doing high-level NLP tasks with deep learning, particularly focused on
@@ -33,7 +41,7 @@ code for these systems is typically 50 lines or less.
 ## Using DeepQA
 
 To train or evaluate a model using DeepQA, the recommended entry point is to use the
-[`run.py`](./scripts/run.py) script.  That script takes one argument, which is a
+[`run_model.py`](./scripts/run_model.py) script.  That script takes one argument, which is a
 parameter file.  You can see example parameter files in the [examples
 directory](./example_experiments).  You can get some notion of what parameters are available by
 looking through the [documentation](http://deep-qa.readthedocs.io).
