@@ -1,6 +1,8 @@
 import logging
 import sys
+import os
 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from deep_qa import run_model
 from deep_qa.common.checks import ensure_pythonhashseed_set
 
