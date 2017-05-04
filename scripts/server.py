@@ -159,7 +159,7 @@ def serve(port: int, config_file: str):
     mySolver = SolverServer(solver)
     # start the server on the specified port
     print("starting server")
-    app.run()
+    app.run(host= '0.0.0.0')
 
 def main():
     ensure_pythonhashseed_set()

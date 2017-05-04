@@ -1,28 +1,39 @@
 {
     "model_class": "MultiClassificationModel",
-    "model_serialization_prefix": "/Users/ahom/Downloads/dev/nlp/models/multi_classification_test_v2/",
+    "model_serialization_prefix": "./nlp/models/multi_classification_test_v5/",
     "encoder": {
         "word": {
+          "type": "cnn",
+          "ngram_filter_sizes": [5],
+          "num_filters": 100
+        }
+    },
+    "seq2seq_encoder": {
+        "default": {
             "type": "bi_gru",
-            "units": 64
+            "encoder_params": {
+                "units": 200
+            },
+            "wrapper_params": {}
         }
     },
     "num_classes": 29,
     "tokenizer": {
       "type": "words and characters"
     },
-    "pretrained_embeddings_file": "/Users/ahom/Downloads/dev/nlp/data/glove.6B.100d.txt.gz",
+    "pretrained_embeddings_file": "./nlp/data/glove.6B.100d.txt.gz",
     "project_embeddings": true,
     "fine_tune_embeddings": false,
     "embedding_dropout": 0.2,
     #"use_data_generator": true,
     #"use_dynamic_padding": true,
-    "patience": 3,
+    "patience": 7,
     "embedding_dim": {"words": 100, "characters": 8},
-    "num_epochs": 20,
+    "num_epochs": 80,
     "optimizer": {
       "type": "adam"
     },
-    "validation_files": ["/Users/ahom/Downloads/dev/nlp/data/classification_dev.tsv"],
-    "train_files": ["/Users/ahom/Downloads/dev/nlp/data/classification_train.tsv"]
+    "batch_size": 100,
+    "validation_files": ["./nlp/data/classification_dev.tsv"],
+    "train_files": ["./nlp/data/classification_train.tsv"]
 }
