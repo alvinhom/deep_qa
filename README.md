@@ -33,7 +33,7 @@ code for these systems is typically 50 lines or less.
 ## Using DeepQA
 
 To train or evaluate a model using DeepQA, the recommended entry point is to use the
-[`run_model.py`](./scripts/run_model.py) script.  That script takes one argument, which is a
+[`run.py`](./scripts/run.py) script.  That script takes one argument, which is a
 parameter file.  You can see example parameter files in the [examples
 directory](./example_experiments).  You can get some notion of what parameters are available by
 looking through the [documentation](http://deep-qa.readthedocs.io).
@@ -43,7 +43,31 @@ library, [DeepQA Experiments](https://github.com/allenai/deep_qa_experiments), w
 originally designed to produce input files and run experiments, and can be used to generate
 required data files for most of the tasks we have models for.  We're moving towards putting the
 data processing code directly into DeepQA, so that DeepQA Experiments is not necessary, but for
-now, getting training data files in the right format is most easily done with DeepQA Experiments.
+now, getting training data files in the right format is most easily [done with DeepQA
+Experiments](https://github.com/allenai/deep_qa/issues/328#issuecomment-298176527).
+
+## Running a Model
+Running a model in DeepQA is very straightforward. Once you have specified model parameters in a
+json file you can run the following:
+
+```
+from deep_qa import run_model, evaluate_model, load_model
+
+# Train a model given a json specification
+run_model("/path/to/json/parameter/file")
+
+
+# Load a model given a json specification
+loaded_model = load_model("/path/to/json/parameter/file")
+# Do some more exciting things with your model here!
+
+
+# Evaluate a pretrained model on some test data specified in the json parameters.
+predictions = evaluate_model("/path/to/json/parameter/file")
+```
+
+We have provided some example json specifications in the [example_experiments](./example_experiments) directory.
+
 
 ## Implementing your own models
 
@@ -55,11 +79,24 @@ section.  For a simple example of a fully functional model, see the [simple sequ
 tagger](./deep_qa/models/sequence_tagging/simple_tagger.py), which has about 20 lines of actual
 implementation code.
 
-One snag is that if you're doing a new task, or a new variant of a task with a different
+In order to train, load and evaluate models which you have written yourself, simply pass an additional
+argument to the functions above and remove the `model_class` parameter from your json specification.
+For example:
+```
+from deep_qa import run_model
+from .local_project import MyGreatModel
+
+# Train a model given a json specification (without a "model_class" attribute).
+run_model("/path/to/json/parameter/file", model_class=MyGreatModel)
+```
+
+If you're doing a new task, or a new variant of a task with a different
 input/output specification, you probably also need to implement an
 [`Instance`](./deep_qa/data/instances/instance.py) type.  The `Instance` handles reading data from
 a file and converting it into numpy arrays that can be used for training and evaluation.  This
 only needs to happen once for each input/output spec.
+
+
 
 ## Organization
 
@@ -141,6 +178,15 @@ an issue is ok, too, but we're a lot more likely to respond to a PR. The primary
 code is [Matt Gardner](https://matt-gardner.github.io/), with a lot of help from [Pradeep
 Dasigi](http://www.cs.cmu.edu/~pdasigi/) (who was the initial author of this codebase), [Mark
 Neumann](http://markneumann.xyz/) and [Nelson Liu](http://nelsonliu.me/).
+
+A note on issues: we are a very small team, and our focus is on getting research done, not on
+building this library.  We do not have anyone dedicated full-time to maintaining and improving
+this code.  As such, we generally do not have bandwidth to solve your problems.  Sorry.  The code
+is well tested and works on our continuous integration server, so if the tests do not pass in your
+environment, there is something wrong with your environment, not the code.  Please only submit
+issues _after_ having made sure the tests pass, and trying to figure out the issue yourself.  In
+your issue, explain clearly what the problem is and what you tried to do to fix it, including
+commands run and full stack traces.  You're a whole lot more likely to actually get help that way.
 
 ## License
 
