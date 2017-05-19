@@ -62,8 +62,8 @@ class ScikitLearnLsh(NearestNeighborAlgorithm):
         scores, neighbor_indices = self.lsh.kneighbors(query_vector, n_neighbors=num_neighbors)
         logger.info("Neighbors retrieved")
         result = [zip(neighbor_indices[i], scores[i]) for i in range(len(neighbor_indices))]
-        if len(result) == 1:
-            result = result[0]
+        #if len(result) == 1:
+        #    result = result[0]
         return result
 
 

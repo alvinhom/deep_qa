@@ -1,6 +1,6 @@
 {
     "model_class": "MultiClassificationModel",
-    "model_serialization_prefix": "./nlp/models/multi_classification_test_v5/",
+    "model_serialization_prefix": "../../models/multi_classification_test_v1/",
     "encoder": {
         "word": {
           "type": "cnn",
@@ -21,7 +21,7 @@
     "tokenizer": {
       "type": "words and characters"
     },
-    "pretrained_embeddings_file": "./nlp/data/glove.6B.100d.txt.gz",
+    "pretrained_embeddings_file": "../../data/glove.6B.100d.txt.gz",
     "project_embeddings": true,
     "fine_tune_embeddings": false,
     "embedding_dropout": 0.2,
@@ -34,6 +34,6 @@
       "type": "adam"
     },
     "batch_size": 100,
-    "validation_files": ["./nlp/data/classification_dev.tsv"],
-    "train_files": ["./nlp/data/classification_train.tsv"]
+    "validation_files": ["../../data/classification_dev.tsv"],
+    "train_files": ["../../data/classification_train.tsv"]
 }

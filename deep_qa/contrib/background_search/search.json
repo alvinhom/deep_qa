@@ -1,0 +1,14 @@
+{
+  "retrieval": {
+    "serialization_prefix": "models/retrieval/",
+    "encoder": {
+      "type": "bow",
+      "embeddings_file": "/Users/ahom/Downloads/dev/nlp/data/glove.6B.100d.txt.gz"
+    },
+    "nearest_neighbors": {
+      "type": "lsh"
+    }
+  },
+  "corpus": "/Users/ahom/Downloads/dev/nlp/data/detailed_description.csv.gz",
+  "num_neighbors": 50
+}

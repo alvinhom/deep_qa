@@ -76,6 +76,7 @@ class VectorBasedRetrieval:
         # Read background file and add to `background_sentences`.
         for sentence in gzip.open(background_file, mode="r"):
             sentence = sentence.decode('utf-8').strip()
+            sentence.replace("\"", "")
             if sentence != '':
                 self.background_sentences.append(sentence)
 
