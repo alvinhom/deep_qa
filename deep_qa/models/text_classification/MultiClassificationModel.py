@@ -4,6 +4,7 @@ import numpy
 import dill as pickle
 from keras.layers import Dense, Dropout, Input
 from keras.utils.np_utils import to_categorical
+from typing import Dict, List
 
 from ...data.instances.text_classification.multi_text_classification_instance import MultipleLabelTextClassificationInstance
 from ...training.text_trainer import TextTrainer
@@ -58,6 +59,14 @@ class MultiClassificationModel(TextTrainer):
     @overrides
     def _set_padding_lengths_from_model(self):
         self._set_text_lengths_from_model_input(self.model.get_input_shape_at(0)[1:])
+
+    @overrides
+    def get_padding_memory_scaling(self, padding_lengths: Dict[str, int]) -> int:
+         return padding_lengths['num_sentence_words'] ** 2
+
+    @overrides
+    def get_instance_sorting_keys(self) -> List[str]:  # pylint: disable=no-self-use
+         return ['num_sentence_words']
 
     @overrides
     def create_data_arrays(self, dataset: IndexedDataset):

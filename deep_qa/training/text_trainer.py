@@ -7,6 +7,7 @@ from keras import backend as K
 from keras.layers import Dense, Dropout, Layer, TimeDistributed
 from overrides import overrides
 import numpy
+import tensorflow
 
 from ..common.checks import ConfigurationError
 from ..common.params import Params
@@ -167,6 +168,41 @@ class TextTrainer(Trainer):
             return dataset.as_training_data()
 
     @overrides
+    def load_dataset_from_files(self, files: List[str]):
+        """
+        This method assumes you have a TextDataset that can be read from a single file.  If you
+        have something more complicated, you'll need to override this method (though, a solver that
+        has background information could call this method, then do additional processing on the
+        rest of the list, for instance).
+        """
+        return TextDataset.read_from_file(files[0], self._instance_type())
+
+    @overrides
+    def score_dataset(self, dataset: TextDataset):
+        """
+        See the superclass docs (:func:`Trainer.score_dataset`) for usage info.  Just a note here
+        that we `do not` use data generators for this method, even if you've said elsewhere that
+        you want to use them, so that we can easily return the labels for the data.  This means
+        that we'll do whole-dataset padding, and this could be slow.  We could probably fix this,
+        but it's good enough for now.
+        """
+        # TODO(matt): for some reason the reference to the super class docs above isn't getting
+        # linked properly.  I'm guessing it's because of an indexing issue in sphinx, but I
+        # couldn't figure it out.  Once that works, it can be changed to "See :func:`the superclass
+        # docs <Trainer.score_dataset>` for usage info").
+        indexed_dataset = dataset.to_indexed_dataset(self.data_indexer)
+        # Because we're not using data generators here, we need to save and hide
+        # `self.data_generator`.  TODO(matt): it _should_ be as easy as iterating over the data
+        # again to pull out the labels, so we can still use data generators, but I'm waiting on
+        # implementing that.
+        data_generator = self.data_generator
+        self.data_generator = None
+        inputs, labels = self.create_data_arrays(indexed_dataset)
+        predictions = self.model.predict(inputs)
+        self.data_generator = data_generator
+        return predictions, labels
+
+    @overrides
     def set_model_state_from_dataset(self, dataset: TextDataset):
         logger.info("Fitting data indexer word dictionary.")
         self.data_indexer.fit_word_dictionary(dataset)
@@ -195,16 +231,6 @@ class TextTrainer(Trainer):
         data_indexer_file = open("%s_data_indexer.pkl" % self.model_prefix, "rb")
         self.data_indexer = pickle.load(data_indexer_file)
         data_indexer_file.close()
-
-    @overrides
-    def load_dataset_from_files(self, files: List[str]):
-        """
-        This method assumes you have a TextDataset that can be read from a single file.  If you
-        have something more complicated, you'll need to override this method (though, a solver that
-        has background information could call this method, then do additional processing on the
-        rest of the list, for instance).
-        """
-        return TextDataset.read_from_file(files[0], self._instance_type())
 
     @overrides
     def _overall_debug_output(self, output_dict: Dict[str, numpy.array]) -> str:
@@ -242,12 +268,6 @@ class TextTrainer(Trainer):
     #################
     # Utility methods - meant to be called by subclasses, not overriden
     #################
-
-    @overrides
-    def score_dataset(self, dataset: TextDataset):
-        indexed_dataset = dataset.to_indexed_dataset(self.data_indexer)
-        inputs, _ = self.create_data_arrays(indexed_dataset)
-        return self.model.predict(inputs)
 
     def _get_sentence_shape(self, sentence_length: int=None) -> Tuple[int]:
         """
@@ -295,7 +315,10 @@ class TextTrainer(Trainer):
         uses both words and characters, we need to run the character encoder and concatenate the
         result with a word embedding).
         """
-        return self.tokenizer.embed_input(input_layer, self.__get_embedded_input, self, embedding_name)
+        return self.tokenizer.embed_input(input_layer,
+                                          self.__get_embedded_input,
+                                          self,
+                                          embedding_name)
 
     def _get_encoder(self, name="default", fallback_behavior: str=None):
         """
@@ -613,24 +636,25 @@ class TextTrainer(Trainer):
         parameters you've passed to the TextTrainer.  These could be pre-trained embeddings or not,
         could include a projection or not, and so on.
         """
-        if vocab_name == 'words' and self.pretrained_embeddings_file:
-            embedding_layer = PretrainedEmbeddings.get_embedding_layer(
-                    self.pretrained_embeddings_file,
-                    self.data_indexer,
-                    self.fine_tune_embeddings,
-                    name=name)
-        else:
-            # TimeDistributedEmbedding works with inputs of any shape.
-            embedding_layer = TimeDistributedEmbedding(
-                    input_dim=self.data_indexer.get_vocab_size(vocab_name),
-                    output_dim=embedding_dim,
-                    mask_zero=True,  # this handles padding correctly
-                    name=name)
-        projection_layer = None
-        if self.project_embeddings:
-            projection_layer = TimeDistributed(Dense(units=embedding_dim,),
-                                               name=name + '_projection')
-        return embedding_layer, projection_layer
+        with tensorflow.device("/cpu:0"):
+            if vocab_name == 'words' and self.pretrained_embeddings_file:
+                embedding_layer = PretrainedEmbeddings.get_embedding_layer(
+                        self.pretrained_embeddings_file,
+                        self.data_indexer,
+                        self.fine_tune_embeddings,
+                        name=name)
+            else:
+                # TimeDistributedEmbedding works with inputs of any shape.
+                embedding_layer = TimeDistributedEmbedding(
+                        input_dim=self.data_indexer.get_vocab_size(vocab_name),
+                        output_dim=embedding_dim,
+                        mask_zero=True,  # this handles padding correctly
+                        name=name)
+            projection_layer = None
+            if self.project_embeddings:
+                projection_layer = TimeDistributed(Dense(units=embedding_dim,),
+                                                   name=name + '_projection')
+            return embedding_layer, projection_layer
 
     def __get_new_encoder(self, params: Params, name: str):
         encoder_type = params.pop_choice("type", list(encoders.keys()),
