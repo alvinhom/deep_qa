@@ -2,29 +2,40 @@
     "model_class": "MultiClassificationModel",
     "model_serialization_prefix": "../../models/multi_classification_test_v1/",
     "encoder": {
-        "word": {
+        "default": {
           "type": "cnn",
           "ngram_filter_sizes": [5],
-          "num_filters": 100
+          "units": 100,
+          "num_filters": 128
+          #"type": "bi_gru",
+          #"units": 256
         }
     },
     "tokenizer": {
-      "type": "words and characters"
+      "type": "words"
     },
-    #"pretrained_embeddings_file": "../../data/glove.6B.100d.txt.gz",
+    #"pretrained_embeddings_file": "../nlp/data/glove.6B.100d.txt.gz",
     #"project_embeddings": true,
-    #"fine_tune_embeddings": false,
+    #"fine_tune_embeddings": true,
     "embedding_dropout": 0.2,
-    "patience": 3,
+    "patience": 20,
     "data_generator": {
-       "dynamic_padding": true       
+       "dynamic_padding": true,       
+       "adaptive_batch_sizes": true,
+       "adaptive_memory_usage_constant": 200000,
+       "maximum_batch_size": 200
     }
-    "embedding_dim": {"words": 100, "characters": 8},
+    "embedding_dim": {"words": 200},
     "num_epochs": 20,
+    "num_hidden_layers": 1,
     "optimizer": {
       "type": "adam"
     },
-    "batch_size": 100,
-    "validation_files": ["/home/ahom/Downloads/incidents_cat3_dev.tsv"],
-    "train_files": ["/home/ahom/Downloads/incidents_cat3_train.tsv"]
+    #"batch_size": 100,
+    #"num_classes": 797,
+    "num_classes": 30,
+    "validation_files": ["/home/ahom/Downloads/dev/nlp/data/classification_test.tsv"],
+    "train_files": ["/home/ahom/Downloads/dev/nlp/data/classification_train.tsv"]
+    #"validation_files": ["/home/ahom/Downloads/incidents_cat3_dev.tsv"],
+    #"train_files": ["/home/ahom/Downloads/incidents_cat3_train.tsv"]
 }

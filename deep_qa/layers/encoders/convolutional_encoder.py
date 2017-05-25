@@ -2,7 +2,7 @@ from typing import Tuple
 
 from keras import backend as K
 from keras.engine import InputSpec
-from keras.layers import Convolution1D, Concatenate, Dense
+from keras.layers import Convolution1D, Concatenate, Dense, Conv1D
 from keras.regularizers import l1_l2
 from overrides import overrides
 
@@ -72,7 +72,7 @@ class CNNEncoder(MaskedLayer):
     @overrides
     def build(self, input_shape):
         # We define convolution, maxpooling and dense layers first.
-        self.convolution_layers = [Convolution1D(filters=self.num_filters,
+        self.convolution_layers = [Conv1D(filters=self.num_filters,
                                                  kernel_size=ngram_size,
                                                  activation=self.conv_layer_activation,
                                                  kernel_regularizer=self.regularizer(),

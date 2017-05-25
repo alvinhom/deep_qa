@@ -104,7 +104,7 @@ class DataGenerator:
         #: this data.
         self.last_num_batches = None
 
-    def create_generator(self, dataset: IndexedDataset):
+    def create_generator(self, dataset: IndexedDataset, converter=None):
         """
         Main external API call: converts an ``IndexedDataset`` into a data generator suitable for
         use with Keras' ``fit_generator`` and related methods.
@@ -121,7 +121,10 @@ class DataGenerator:
                 for group in groups:
                     batch = IndexedDataset(group)
                     batch.pad_instances(self.text_trainer.get_padding_lengths(), verbose=False)
-                    yield batch.as_training_data()
+                    if converter:
+                        yield converter(batch.as_training_data())
+                    else:
+                        yield batch.as_training_data()
         return generator()
 
     def __create_batches(self, dataset: IndexedDataset) -> List[List[IndexedInstance]]:
