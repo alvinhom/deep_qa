@@ -106,8 +106,9 @@ def run_model(param_path: str, model_class=None):
 
     if model.can_train():
         logger.info("Training model")
-        model.train()
+        history = model.train()
         K.clear_session()
+        return history
     else:
         raise ConfigurationError("The supplied model does not have enough training inputs.")
 

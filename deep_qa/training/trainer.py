@@ -360,6 +360,9 @@ class Trainer:
         if self.test_files:
             self.evaluate_model(self.test_files, self.max_test_instances)
 
+        # Return history to caller for evaluation
+        return history
+
     def score_dataset(self, dataset: Dataset):
         inputs, _ = self.create_data_arrays(dataset)
         return self.model.predict(inputs)
